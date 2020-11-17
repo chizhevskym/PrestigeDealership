@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request
+from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
 # ENV = 'dev'
@@ -58,7 +59,7 @@ def submit():
         # if form is empty, display alert
         if customer == '' or dealer =='':
             return render_template('index.html',message='Please enter required fields')
-        return render_template('success.html')
+        
         #Queries
         #Check customer doesnt already exist
         #grab data being passed into db
@@ -72,5 +73,4 @@ def submit():
         return render_template('index.html', message='You have already submitted feedback')
 
 if __name__ == '__main__':
-    app.debug = True
     app.run()
