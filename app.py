@@ -19,6 +19,9 @@ def submit():
         rating = request.form['rating']
         comments = request.form['comments']
         print(customer, dealer, rating, comments)
+        # if form is empty, display alert
+        if customer == '' or dealer =='':
+            return render_template('index.html',message='Please enter required fields')
         return render_template('success.html')
 
 if __name__ == '__main__':
