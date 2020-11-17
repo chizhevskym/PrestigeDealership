@@ -1,6 +1,26 @@
 from flask import Flask, render_template, request
 app = Flask(__name__)
 
+# ENV = 'dev'
+
+ENV = 'prod'
+
+if ENV =='dev':
+    #dev database
+    app.debug = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@localhost/dealership'
+else:
+    #production database
+    app.debug = FALSE
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'DATABASE_URL: postgres://eferowmoegoito:e0405aba75574cbb9d8fa5d3fd236ea91512c755e7e5a739e4b3132d9598bd77@ec2-3-220-98-137.compute-1.amazonaws.com:5432/d17l6nv22ftldo'  
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+#create db object and pass app to qquery db
+db = SQLAlchemy(app)
+
+#create model for feedback form
+#intializes database
 class Feedback(db.Model):
     __tablename__ = 'feedback'
     id = db.Column(db.Integer, primary_key=True)
@@ -9,6 +29,8 @@ class Feedback(db.Model):
     rating = db.Column(db.Integer)
     comments = db.Column(db.Text())
 
+# constructor to intiazie class
+#takes in self/this and all varables expect id
     def __init__(self, customer, dealer, rating, comments):
         self.customer = customer
         self.dealer = dealer
