@@ -41,11 +41,11 @@ class Feedback(db.Model):
 def index():
     return render_template('home.html')
 
-@app.route('/index2', methods=['GET', 'POST'])
+@app.route('/index', methods=['GET', 'POST'])
 def index_func():
     if request.method == 'POST':
         return redirect(url_for('index.html'))
-    return render_template('home.html')
+    return render_template('index.html')
 
 # verify method is post
 # return form data as variables
