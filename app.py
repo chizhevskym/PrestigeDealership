@@ -39,7 +39,7 @@ class Feedback(db.Model):
 # Rotue for form / homepage
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('home.html')
 
 # verify method is post
 # return form data as variables
