@@ -41,6 +41,12 @@ class Feedback(db.Model):
 def index():
     return render_template('home.html')
 
+@app.route('/index2', methods=['GET', 'POST'])
+def index_func():
+    if request.method == 'POST':
+    return redirect(url_for('index.html'))
+
+
 # verify method is post
 # return form data as variables
 #print data in console
