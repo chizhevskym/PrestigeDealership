@@ -3,19 +3,19 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-# ENV = 'dev'
-ENV = 'prod'
+ENV = 'dev'
+#ENV = 'prod'
 
 if ENV == 'dev':
     app.debug = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@localhost/dealership'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Admin1998@localhost:5432/dealershipDB'
 else:
     app.debug = False
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://eferowmoegoito:e0405aba75574cbb9d8fa5d3fd236ea91512c755e7e5a739e4b3132d9598bd77@ec2-3-220-98-137.compute-1.amazonaws.com:5432/d17l6nv22ftldo'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-#create db object and pass app to qquery db
+#create db object and pass app to query db
 db = SQLAlchemy(app)
 
 #create model for feedback form
@@ -44,10 +44,10 @@ class Vehicle(db.Model):
     model = db.Column(db.String(200))
     make = db.Column(db.String(200))
     year = db.Column(db.String(5))
-    mileage = db.Column(db.float())
+    mileage = db.Column(db.Float)
     exterior = db.Column(db.String(200))
     interior = db.Column(db.String(200))
-    price = db.Column(db.float())
+    price = db.Column(db.Float)
     imageURL = db.Column(db.String(400))
 
 # constructor to initialize class
