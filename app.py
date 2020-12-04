@@ -28,7 +28,7 @@ class Feedback(db.Model):
     rating = db.Column(db.Integer)
     comments = db.Column(db.Text())
 
-# constructor to intiazie class
+# constructor to initialize class
 #takes in self/this and all varables expect id
     def __init__(self, customer, dealer, rating, comments):
         self.customer = customer
@@ -36,7 +36,33 @@ class Feedback(db.Model):
         self.rating = rating
         self.comments = comments
 
-# Rotue for form / homepage
+#create model for vehicle
+#intializes database
+class Vehicle(db.Model):
+    __tablename__ = 'Vehicle'
+    vin = db.Column(db.String(17), primary_key=True)
+    model = db.Column(db.String(200))
+    make = db.Column(db.String(200))
+    year = db.Column(db.String(5))
+    mileage = db.Column(db.float())
+    exterior = db.Column(db.String(200))
+    interior = db.Column(db.String(200))
+    price = db.Column(db.float())
+    imageURL = db.Column(db.String(400))
+
+# constructor to initialize class
+#takes in self/this and all varables 
+    def __init__(vin, model, make, year, mileage, exterior, interior, price, imageURL):
+        self.vin = vin
+        self.model = model
+        self.make = make
+        self.year = year
+        self.mileage = mileage
+        self.exterior = exterior
+        self.interior = interior
+        self.price = price
+        self.imageURL = imageURL
+# Route for form / homepage
 @app.route('/')
 def index():
     return render_template('home.html')

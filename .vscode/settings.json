@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": "/Users/kaylyntorres/.local/share/virtualenvs/FinalProject-kSpfgGVU/bin/python"
+    "python.pythonPath": "C:\\Users\\Max's PC\\.virtualenvs\\FinalProject-r4YeU_q-\\Scripts\\python.exe",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }
