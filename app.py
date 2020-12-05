@@ -123,6 +123,10 @@ def submit():
             newcust= Customer(customerfirst,customerlast,zipcode)
             db.session.add(newcust)
             db.session.commit()
+        custinfo = db.session.query(Customer).filter_by(firstname = customerfirst, lastname=customerlast, zipcode=zipcode).first()
+        newappt = Appointment(employee,custinfo.customerID,vin)
+        db.session.add(newappt)
+        db.session.commit()
         return render_template("success.html")
 
 if __name__ == '__main__':
