@@ -28,8 +28,8 @@ class Feedback(db.Model):
     rating = db.Column(db.Integer)
     comments = db.Column(db.Text())
 
-# constructor to initialize class
-#takes in self/this and all varables expect id
+ # constructor to initialize class
+ #takes in self/this and all varables expect id
     def __init__(self, customer, dealer, rating, comments):
         self.customer = customer
         self.dealer = dealer
@@ -50,8 +50,8 @@ class Vehicle(db.Model):
     price = db.Column(db.Float)
     imageURL = db.Column(db.String(400))
 
-# constructor to initialize class
-#takes in self/this and all varables 
+ # constructor to initialize class
+ #takes in self/this and all varables 
     def __init__(vin, model, make, year, mileage, exterior, interior, price, imageURL):
         self.vin = vin
         self.model = model
@@ -62,6 +62,22 @@ class Vehicle(db.Model):
         self.interior = interior
         self.price = price
         self.imageURL = imageURL
+
+#create model for employee
+#intializes database
+class Employee(db.Model):
+    __tablename__ = 'Employee'
+    employeeID = db.Column(db.String(200), primary_key=True)
+    firstname = db.Column(db.String(200))
+    lastname = db.Column(db.String(200))
+
+ # constructor to initialize class
+ #takes in self/this and all varables 
+    def __init__(employeeID,firstname,lastname):
+        self.employeeID = employeeID
+        self.firstname = firstname
+        self.lastname = lastname
+
 # Route for form / homepage
 @app.route('/', methods=['GET'])
 def index():
@@ -70,10 +86,10 @@ def index():
 
 @app.route('/index', methods=['GET'])
 def index_func():
-    if request.method == 'GET':
-        vin = request.args.get('vin')
-        vehicleInfo = db.session.query(Vehicle).filter_by(vin = vin).first()
-    return render_template('index.html', vehicleInfo = vehicleInfo)
+    vin = request.args.get('vin')
+    vehicleInfo = db.session.query(Vehicle).filter_by(vin = vin).first()
+    employeeList = db.session.query(Employee).all()
+    return render_template('index.html', vehicleInfo = vehicleInfo, employeeList= employeeList)
 
 # verify method is post
 # return form data as variables
