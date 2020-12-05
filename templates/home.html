@@ -1,26 +1,124 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <link rel="stylesheet" href="../static/style.css" />
-    <title>HomePage</title>
-  </head>
-  <body>
-    <div class="container">
-      <img src="../static/logo.png" alt="" class="logo" />
-      <h1>Testing Data!</h1>
-      <h2>Thank you for rating your experience. We hope to see you soon!</h2>
-      <!-- <li class="active"><a href="/index">Open Form</a></li> -->
-      <!-- make this into a post request -->
-      <p><a href="{{ url_for('index_func') }}">Check out</a></p>
+<html>
+<head>
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
+<style>
+.card {
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+  transition: 0.3s;
+  width: 40%;
+}
+
+.card:hover {
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+}
+
+.container {
+  padding: 2px 16px;
+}
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+/* Style the footer */
+footer {
+  background-color: #777;
+  padding: 10px;
+  text-align: center;
+  color: white;
+}
+
+header {
+  background-color: #666;
+  padding: 30px;
+  font-size: 35px;
+  color: white;
+}
+
+img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="../static/logo.png" alt="background" style="width:75%" >
+    <p style="font-size:30px">Welcome to Prestige Dealership!</p>
+    <p style="font-size:15px">Prestige Dealership is proud to provide the best in class dealership experience. Whether you’re looking for a new or quality used vehicle, our knowledgeable sales staff is here to help you. We offer assistance with vehicle financing and auto loans to ensure you bring your dream car home today. We also have a state-of-the-art service center and certified service technicians to handle all your vehicle’s repair and maintenance needs. </p>
+  </header>
+
+<table>
+  {% for vehicle in inventoryList %}
+  <tr>
+    <a href={{ 'index?vin=' + vehicle.vin }}>{{ vehicle.make + " " + vehicle.model }}</a>
+    <td style="background-color:powderblue;">  
+    <img src="../static/sclass.jpg" alt="car photo" style="width:50%" >
+    <div class="w3-container w3-center">
+      <p>{{vehicle.make}}</p>
+      <p>{{vehicle.year + " " + vehicle.model vehicle}}</p>
+      <p>{{vehicle.mileage + " mileage"}}</p>
+      <p>{{vehicle.price}}</p>
     </div>
-    <div class=page>
-      <h1>Inventory</h1>
-      {% for vehicle in inventoryList %}
-        <a href={{ 'index?vin=' + vehicle.vin }}>{{ vehicle.make + " " + vehicle.model }}</a>
-      {% endfor %}
+  </div></td>
+  </tr>
+  {% endfor %}
+  <tr>
+    <td> 
+    <img src="img_snowtops.jpg" alt="car photo" style="width:50%">
+    <div class="w3-container w3-center">
+      <p>The Italian / Austrian Alps</p>
     </div>
-  </body>
+  </div></td>
+  </tr>
+  <tr>
+    <td> 
+    <img src="img_snowtops.jpg" alt="car photo" style="width:50%">
+    <div class="w3-container w3-center">
+      <p>The Italian / Austrian Alps</p>
+      <p> </p>
+    </div>
+  </div></td>
+  </tr>
+  <tr>
+    <td>  
+    <img src="img_snowtops.jpg" alt="car photo" style="width:50%">
+    <div class="w3-container w3-center">
+      <p>The Italian / Austrian Alps</p>
+    </div>
+  </div></td>
+  </tr>
+  <tr>
+    <td>  
+    <img src="img_snowtops.jpg" alt="car photo" style="width:50%">
+    <div class="w3-container w3-center">
+      <p>The Italian / Austrian Alps</p>
+    </div>
+  </div></td>
+  </tr>
+  <tr>
+    <td>  
+    <img src="img_snowtops.jpg" alt="car photo" style="width:50%">
+    <div class="w3-container w3-center">
+      <p>The Italian / Austrian Alps</p>
+    </div>
+  </div></td>
+  </tr>
+</table>
+
+<footer>
+  <p>Contact Informtation</p>
+</footer>
+
+</body>
 </html>
