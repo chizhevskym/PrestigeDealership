@@ -19,7 +19,7 @@
     <div class=page>
       <h1>Inventory</h1>
       {% for vehicle in inventoryList %}
-        <h2>{{vehicle.make}} </h2>
+        <a href={{ 'index?vin=' + vehicle.vin }}>{{ vehicle.make + " " + vehicle.model }}</a>
       {% endfor %}
     </div>
   </body>

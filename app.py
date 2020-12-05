@@ -3,8 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-#ENV = 'dev'
-ENV = 'prod'
+ENV = 'dev'
+#ENV = 'prod'
 
 if ENV == 'dev':
     app.debug = True
@@ -63,18 +63,17 @@ class Vehicle(db.Model):
         self.price = price
         self.imageURL = imageURL
 # Route for form / homepage
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def index():
-    if request.method == 'GET' :
-        cars = db.session.query(Vehicle).all()
-        return render_template('home.html',inventoryList=cars)
-    return render_template('home.html')
+    cars = db.session.query(Vehicle).all()
+    return render_template('home.html',inventoryList=cars)
 
-@app.route('/index', methods=['GET', 'POST'])
+@app.route('/index', methods=['GET'])
 def index_func():
-    if request.method == 'POST':
-        return redirect(url_for('index.html'))
-    return render_template('index.html')
+    if request.method == 'GET':
+        vin = request.args.get('vin')
+        vehicleInfo = db.session.query(Vehicle).filter_by(vin = vin).first()
+    return render_template('index.html', vehicleInfo = vehicleInfo)
 
 # verify method is post
 # return form data as variables
