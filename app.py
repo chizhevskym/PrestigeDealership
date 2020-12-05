@@ -18,24 +18,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #create db object and pass app to query db
 db = SQLAlchemy(app)
 
-#create model for feedback form
-#intializes database
-class Feedback(db.Model):
-    __tablename__ = 'feedback'
-    id = db.Column(db.Integer, primary_key=True)
-    customer = db.Column(db.String(200), unique=True)
-    dealer = db.Column(db.String(200))
-    rating = db.Column(db.Integer)
-    comments = db.Column(db.Text())
-
- # constructor to initialize class
- #takes in self/this and all varables expect id
-    def __init__(self, customer, dealer, rating, comments):
-        self.customer = customer
-        self.dealer = dealer
-        self.rating = rating
-        self.comments = comments
-
 #create model for vehicle
 #intializes database
 class Vehicle(db.Model):
@@ -52,7 +34,7 @@ class Vehicle(db.Model):
 
  # constructor to initialize class
  #takes in self/this and all varables 
-    def __init__(vin, model, make, year, mileage, exterior, interior, price, imageURL):
+    def __init__(self, vin, model, make, year, mileage, exterior, interior, price, imageURL):
         self.vin = vin
         self.model = model
         self.make = make
@@ -67,14 +49,13 @@ class Vehicle(db.Model):
 #intializes database
 class Employee(db.Model):
     __tablename__ = 'Employee'
-    employeeID = db.Column(db.String(200), primary_key=True)
+    employeeID = db.Column(db.Integer, primary_key=True)
     firstname = db.Column(db.String(200))
     lastname = db.Column(db.String(200))
 
  # constructor to initialize class
  #takes in self/this and all varables 
-    def __init__(employeeID,firstname,lastname):
-        self.employeeID = employeeID
+    def __init__(self,firstname,lastname):
         self.firstname = firstname
         self.lastname = lastname
 
@@ -82,30 +63,30 @@ class Employee(db.Model):
 #intializes database
 class Customer(db.Model):
     __tablename__ = 'Customer'
-    customerID = db.Column(db.String(200), primary_key=True)
+    customerID = db.Column(db.Integer, primary_key=True)
     firstname = db.Column(db.String(200))
     lastname = db.Column(db.String(200))
+    zipcode = db.Column(db.String(5))
 
  # constructor to initialize class
  #takes in self/this and all varables 
-    def __init__(customerID,firstname,lastname):
-        self.customerID = customerID
+    def __init__(self,firstname,lastname,zipcode):
         self.firstname = firstname
         self.lastname = lastname
+        self.zipcode = zipcode
 
 #create model for employee
 #intializes database
 class Appointment(db.Model):
     __tablename__ = 'Appointment'
-    appointmentID = db.Column(db.String(200), primary_key=True)
-    employeeID = db.Column(db.String(200))
-    customerID = db.Column(db.String(200))
+    appointmentID = db.Column(db.Integer, primary_key=True)
+    employeeID = db.Column(db.Integer)
+    customerID = db.Column(db.Integer)
     vehicleID = db.Column(db.String(17))
 
  # constructor to initialize class
  #takes in self/this and all varables 
-    def __init__(appointmentID,employeeID,customerID,vehicleID):
-        self.appointmentID = appointmentID
+    def __init__(self,employeeID,customerID,vehicleID):
         self.employeeID = employeeID
         self.customerID = customerID
         self.vehicleID = vehicleID
@@ -138,6 +119,10 @@ def submit():
         repeatcust = request.form['repeatcust']
         vin = request.form['vin']
         print(customerfirst, customerlast, zipcode, employee, repeatcust, vin)
+        if repeatcust == "No":
+            newcust= Customer(customerfirst,customerlast,zipcode)
+            db.session.add(newcust)
+            db.session.commit()
         return render_template("success.html")
 
 if __name__ == '__main__':
