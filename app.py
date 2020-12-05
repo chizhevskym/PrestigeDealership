@@ -63,8 +63,11 @@ class Vehicle(db.Model):
         self.price = price
         self.imageURL = imageURL
 # Route for form / homepage
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    if request.method == 'GET' :
+        cars = db.session.query(Vehicle).all()
+        return render_template('home.html',inventoryList=cars)
     return render_template('home.html')
 
 @app.route('/index', methods=['GET', 'POST'])
