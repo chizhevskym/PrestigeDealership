@@ -16,5 +16,11 @@
       <!-- make this into a post request -->
       <p><a href="{{ url_for('index_func') }}">Check out</a></p>
     </div>
+    <div class=page>
+      <h1>Inventory</h1>
+      {% for vehicle in inventoryList %}
+        <h2>{{vehicle.make}} </h2>
+      {% endfor %}
+    </div>
   </body>
 </html>
