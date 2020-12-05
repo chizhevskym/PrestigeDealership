@@ -78,6 +78,38 @@ class Employee(db.Model):
         self.firstname = firstname
         self.lastname = lastname
 
+#create model for employee
+#intializes database
+class Customer(db.Model):
+    __tablename__ = 'Customer'
+    customerID = db.Column(db.String(200), primary_key=True)
+    firstname = db.Column(db.String(200))
+    lastname = db.Column(db.String(200))
+
+ # constructor to initialize class
+ #takes in self/this and all varables 
+    def __init__(customerID,firstname,lastname):
+        self.customerID = customerID
+        self.firstname = firstname
+        self.lastname = lastname
+
+#create model for employee
+#intializes database
+class Appointment(db.Model):
+    __tablename__ = 'Appointment'
+    appointmentID = db.Column(db.String(200), primary_key=True)
+    employeeID = db.Column(db.String(200))
+    customerID = db.Column(db.String(200))
+    vehicleID = db.Column(db.String(17))
+
+ # constructor to initialize class
+ #takes in self/this and all varables 
+    def __init__(appointmentID,employeeID,customerID,vehicleID):
+        self.appointmentID = appointmentID
+        self.employeeID = employeeID
+        self.customerID = customerID
+        self.vehicleID = vehicleID
+
 # Route for form / homepage
 @app.route('/', methods=['GET'])
 def index():
