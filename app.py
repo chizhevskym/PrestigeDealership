@@ -99,10 +99,12 @@ def index_func():
 @app.route('/submit', methods=['POST'])
 def submit():
     if request.method == 'POST':
-        customer = request.form['customer']
-        dealer = request.form['dealer']
-        rating = request.form['rating']
-        comments = request.form['comments']
+        customerfirst = request.form['customerfirstname']
+        customerlast = request.form['customerlastname']
+        zipcode = request.form['customerzipcode']
+        employee = request.form['employee']
+        repeatcust = request.form['repeatcust']
+        vin = request.form['vin']
         print(customer, dealer, rating, comments)
         # if form is empty, display alert
         if customer == '' or dealer =='':
