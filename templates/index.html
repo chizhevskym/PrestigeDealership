@@ -53,7 +53,7 @@
                 <option value="">Select Employee</option>
                 <option value="any">Any Employee</option>
                 {% for employee in employeeList %}
-                <option value="{{employee.id}}">{{employee.firstname + ' '  + employee.lastname  }}</option>
+                <option value="{{employee.employeeID}}">{{employee.firstname + ' '  + employee.lastname  }}</option>
                 {% endfor %}
               </select>
             </div>

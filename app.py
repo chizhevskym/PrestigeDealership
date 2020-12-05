@@ -105,22 +105,8 @@ def submit():
         employee = request.form['employee']
         repeatcust = request.form['repeatcust']
         vin = request.form['vin']
-        print(customer, dealer, rating, comments)
-        # if form is empty, display alert
-        if customer == '' or dealer =='':
-            return render_template('index.html',message='Please enter required fields')
-        
-        #Queries
-        #Check customer doesnt already exist
-        #grab data being passed into db
-        #add data to db, commit to db, render success
-        #if customer exists, render index with message
-        if db.session.query(Feedback).filter(Feedback.customer == customer).count() == 0:
-            data = Feedback(customer, dealer, rating, comments)
-            db.session.add(data)
-            db.session.commit()
-            return render_template('success.html')
-        return render_template('index.html', message='You have already submitted feedback')
+        print(customerfirst, customerlast, zipcode, employee, repeatcust, vin)
+        return render_template("success.html")
 
 if __name__ == '__main__':
     app.run()
