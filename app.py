@@ -59,7 +59,7 @@ class Employee(db.Model):
         self.firstname = firstname
         self.lastname = lastname
 
-#create model for employee
+#create model for customer
 #intializes database
 class Customer(db.Model):
     __tablename__ = 'Customer'
@@ -75,7 +75,7 @@ class Customer(db.Model):
         self.lastname = lastname
         self.zipcode = zipcode
 
-#create model for employee
+#create model for appointments\
 #intializes database
 class Appointment(db.Model):
     __tablename__ = 'Appointment'
@@ -112,6 +112,7 @@ def index_func():
 @app.route('/submit', methods=['POST'])
 def submit():
     if request.method == 'POST':
+        #grab info from form
         customerfirst = request.form['customerfirstname']
         customerlast = request.form['customerlastname']
         zipcode = request.form['customerzipcode']
@@ -120,10 +121,13 @@ def submit():
         vin = request.form['vin']
         print(customerfirst, customerlast, zipcode, employee, repeatcust, vin)
         if repeatcust == "No":
+            #add new customer to db
             newcust= Customer(customerfirst,customerlast,zipcode)
             db.session.add(newcust)
             db.session.commit()
+        #find customer in db
         custinfo = db.session.query(Customer).filter_by(firstname = customerfirst, lastname=customerlast, zipcode=zipcode).first()
+        #add new appt to db
         newappt = Appointment(employee,custinfo.customerID,vin)
         db.session.add(newappt)
         db.session.commit()
