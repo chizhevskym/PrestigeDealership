@@ -22,17 +22,25 @@
             <div class="form-group">
               <h3>Customer Information</h3>
               {{form.customerfirst(placeholder="First Name")}}
+              {% for error in form.customerfirst.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+              {% endfor %}
               {{form.customerlast(placeholder="Last Name")}}
+              {% for error in form.customerlast.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
               {{form.zipcode(placeholder="Zipcode")}}
+              {% for error in form.zipcode.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
             </div>
             <br>
-            {% if form.errors %}
-            {{ form.errors }}
-            {% endif %}
             <div class="form-group">
               <h3>Staff</h3>
               {{form.employee()}}
-              </select>
+              {% for error in form.employee.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
             </div>
             <br>
             <div class="form-group">
