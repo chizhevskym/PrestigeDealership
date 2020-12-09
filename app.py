@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
+from wtforms import Form, BooleanField, DateTimeField, TextAreaField, TextField
+from wtforms.validators import Length, required
 
 app = Flask(__name__)
 
@@ -90,6 +92,15 @@ class Appointment(db.Model):
         self.employeeID = employeeID
         self.customerID = customerID
         self.vehicleID = vehicleID
+
+# renders input form and validation
+class AppointmentForm(Form): 
+    customerfirst = TextField('customerfirstname', [required()], [Length(max=200)])
+    customerlast = TextField('customerlastname',[required()], [Length(max=200)])
+    zipcode = TextField('customerzipcode',[required()], [Length(max=5)])
+    #employee = TextField('employee',[required()], [Length(max=)])
+    repeatcust = BooleanField('repeatcust',[required()])
+    vin = TextField('vin',[required()], [Length(max=17)]))
 
 # Route for form / homepage
 @app.route('/', methods=['GET'])
