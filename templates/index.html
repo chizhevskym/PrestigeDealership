@@ -10,16 +10,6 @@
     <title>Schedule a Test Drive</title>
   </head>
   <body>
-        <script>
-          $(document).ready(function () {
-            $("input[name='repeatcust']").on('click', function () {
-              var elClicked = $(this);
-              
-              $("input[name='repeatcust']").prop("checked", false);
-              elClicked.prop("checked", true);
-            });
-          });
-        </script>
         <div class="container">
           <img src="../static/logo.png" alt="Lexus" class="logo" />
           <!-- if fields are empty throw message -->
@@ -27,49 +17,37 @@
          <p class="message">{{ message | safe }}</p>
           {% endif %}
 
-          <form action="/submit" method="POST">
+          <form action="" method="POST">
+            {{ form.csrf_token }}
             <div class="form-group">
               <h3>Customer Information</h3>
-              <input
-                type="text"
-                name="customerfirstname"
-                placeholder="First Name"
-              />
-              <input
-              type="text"
-              name="customerlastname"
-              placeholder="Last Name"
-            />
-              <input
-                type="text"
-                name="customerzipcode"
-                placeholder="Zipcode"
-              />
+              {{form.customerfirst(placeholder="First Name")}}
+              {{form.customerlast(placeholder="Last Name")}}
+              {{form.zipcode(placeholder="Zipcode")}}
             </div>
             <br>
+            {% if form.errors %}
+            {{ form.errors }}
+            {% endif %}
             <div class="form-group">
               <h3>Staff</h3>
-              <select name="employee">
-                <option value="">Select Employee</option>
-                <option value="any">Any Employee</option>
-                {% for employee in employeeList %}
-                <option value="{{employee.employeeID}}">{{employee.firstname + ' '  + employee.lastname  }}</option>
-                {% endfor %}
+              {{form.employee()}}
               </select>
             </div>
             <br>
             <div class="form-group">
               <h3>Have you been here before?</h3>
-              <input type="checkbox" name="repeatcust" value="Yes" /> Yes
-              <input type="checkbox" name="repeatcust" value="No" checked /> No
+              {{form.repeatcust(value="Yes")}} Yes
             </div>
             <br>
             <div class="from-group">
               <h3>Selected Vehicle</h3>
+              <img src="{{vehicleInfo.imageURL}}" alt="car photo" style="width:25%" >
               <h4>{{vehicleInfo.year + ' ' + vehicleInfo.make + ' ' + vehicleInfo.model}}</h4>
+              <a href="/"> Change Vehicle</a>
             </div>
-            <input type="submit" value="Schedule Test Drive" class="btn" />
-            <input type="hidden" name="vin" value="{{vehicleInfo.vin}}" >
+            <p>{{form.submit(class="btn")}}</p>
+            {{form.vin(value=vehicleInfo.vin)}}
           </form>
         </div>
   </body>

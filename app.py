@@ -1,9 +1,14 @@
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
-from wtforms import Form, BooleanField, DateTimeField, TextAreaField, TextField
-from wtforms.validators import Length, required
+from flask_wtf import FlaskForm
+from wtforms import Form, BooleanField, DateTimeField, StringField, TextField, SelectField, HiddenField, SubmitField
+from wtforms.validators import Length, DataRequired, ValidationError
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
 app = Flask(__name__)
+
+#for CSRF protection
+app.config['SECRET_KEY'] = 'you-will-never-guess'
 
 ENV = 'dev'
 #ENV = 'prod'
@@ -94,13 +99,14 @@ class Appointment(db.Model):
         self.vehicleID = vehicleID
 
 # renders input form and validation
-class AppointmentForm(Form): 
-    customerfirst = TextField('customerfirstname', [required()], [Length(max=200)])
-    customerlast = TextField('customerlastname',[required()], [Length(max=200)])
-    zipcode = TextField('customerzipcode',[required()], [Length(max=5)])
-    #employee = TextField('employee',[required()], [Length(max=)])
-    repeatcust = BooleanField('repeatcust',[required()])
-    vin = TextField('vin',[required()], [Length(max=17)]))
+class AppointmentForm(FlaskForm): 
+    customerfirst = StringField('customerfirstname', [DataRequired(), Length(max=200)])
+    customerlast = StringField('customerlastname',[DataRequired(), Length(max=200)])
+    zipcode = StringField('customerzipcode',[DataRequired(), Length(min = 5, max=5, message= 'Invalid Zip-Code')])
+    employee = QuerySelectField('employee',[DataRequired()], query_factory=lambda: db.session.query(Employee).all(), get_label=lambda e: e.firstname + ' ' + e.lastname,allow_blank=True,blank_text='Select Employee')
+    repeatcust = BooleanField('repeatcust')
+    vin = HiddenField('vin', [DataRequired(), Length(max=17)])
+    submit = SubmitField('Schedule Test Drive')
 
 # Route for form / homepage
 @app.route('/', methods=['GET'])
@@ -108,41 +114,38 @@ def index():
     cars = db.session.query(Vehicle).all()
     return render_template('home.html',inventoryList=cars)
 
-@app.route('/index', methods=['GET'])
-def index_func():
+@app.route('/index', methods=['GET', 'POST'])
+def submit():
+    #grab info from form
+    form = AppointmentForm()
+    #form validation
+    if form.validate_on_submit():
+        print("validated")
+        if form.repeatcust.data == False:
+            #add new customer to db
+            newcust= Customer(form.customerfirst.data,form.customerlast.data,form.zipcode.data)
+            db.session.add(newcust)
+            db.session.commit()
+        #find customer in db
+        custinfo = db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first()
+        #add new appt to db
+        newappt = Appointment(form.employee.data.employeeID,custinfo.customerID,form.vin.data)
+        db.session.add(newappt)
+        db.session.commit()
+        return render_template('success.html')
+    print("notvalidated")
     vin = request.args.get('vin')
     vehicleInfo = db.session.query(Vehicle).filter_by(vin = vin).first()
-    employeeList = db.session.query(Employee).all()
-    return render_template('index.html', vehicleInfo = vehicleInfo, employeeList= employeeList)
+    return render_template('index.html', vehicleInfo = vehicleInfo, form=form)
 
 # verify method is post
 # return form data as variables
 #print data in console
 #render sucess page if true
 
-@app.route('/submit', methods=['POST'])
-def submit():
-    if request.method == 'POST':
-        #grab info from form
-        customerfirst = request.form['customerfirstname']
-        customerlast = request.form['customerlastname']
-        zipcode = request.form['customerzipcode']
-        employee = request.form['employee']
-        repeatcust = request.form['repeatcust']
-        vin = request.form['vin']
-        print(customerfirst, customerlast, zipcode, employee, repeatcust, vin)
-        if repeatcust == "No":
-            #add new customer to db
-            newcust= Customer(customerfirst,customerlast,zipcode)
-            db.session.add(newcust)
-            db.session.commit()
-        #find customer in db
-        custinfo = db.session.query(Customer).filter_by(firstname = customerfirst, lastname=customerlast, zipcode=zipcode).first()
-        #add new appt to db
-        newappt = Appointment(employee,custinfo.customerID,vin)
-        db.session.add(newappt)
-        db.session.commit()
-        return render_template("success.html")
+@app.route('/success', methods=['GET'])
+def success():
+    return render_template("success.html")
 
 if __name__ == '__main__':
     app.run()
