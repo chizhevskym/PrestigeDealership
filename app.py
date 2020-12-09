@@ -138,7 +138,7 @@ def submit():
         newappt = Appointment(form.employee.data.employeeID,custinfo.customerID,form.vin.data)
         db.session.add(newappt)
         db.session.commit()
-        return redirect('/success')
+        return redirect('/success?apptid='+str(newappt.appointmentID))
     print("notvalidated")
     vin = request.args.get('vin')
     vehicleInfo = db.session.query(Vehicle).filter_by(vin = vin).first()
