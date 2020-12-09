@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import Form, BooleanField, DateTimeField, StringField, TextField, SelectField, HiddenField, SubmitField
@@ -108,6 +108,12 @@ class AppointmentForm(FlaskForm):
     vin = HiddenField('vin', [DataRequired(), Length(max=17)])
     submit = SubmitField('Schedule Test Drive')
 
+    # to validate that customer is in db
+    def validate_repeatcust(form,field):
+        if field.data == True and db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first() is None:
+            raise ValidationError('You have not been here before (no matching customer in database)')
+
+
 # Route for form / homepage
 @app.route('/', methods=['GET'])
 def index():
@@ -132,16 +138,11 @@ def submit():
         newappt = Appointment(form.employee.data.employeeID,custinfo.customerID,form.vin.data)
         db.session.add(newappt)
         db.session.commit()
-        return render_template('success.html')
+        return redirect('/success')
     print("notvalidated")
     vin = request.args.get('vin')
     vehicleInfo = db.session.query(Vehicle).filter_by(vin = vin).first()
     return render_template('index.html', vehicleInfo = vehicleInfo, form=form)
-
-# verify method is post
-# return form data as variables
-#print data in console
-#render sucess page if true
 
 @app.route('/success', methods=['GET'])
 def success():

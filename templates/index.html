@@ -46,6 +46,9 @@
             <div class="form-group">
               <h3>Have you been here before?</h3>
               {{form.repeatcust(value="Yes")}} Yes
+              {% for error in form.repeatcust.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
             </div>
             <br>
             <div class="from-group">
