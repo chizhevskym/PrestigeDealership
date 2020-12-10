@@ -124,6 +124,8 @@ def index():
 def submit():
     #grab info from form
     form = AppointmentForm()
+    vin = request.args.get('vin')
+    vehicleInfo = db.session.query(Vehicle).filter_by(vin = vin).first()
     #form validation
     if form.validate_on_submit():
         print("validated")
@@ -138,15 +140,9 @@ def submit():
         newappt = Appointment(form.employee.data.employeeID,custinfo.customerID,form.vin.data)
         db.session.add(newappt)
         db.session.commit()
-        return redirect('/success?apptid='+str(newappt.appointmentID))
+        return render_template('success.html', vehicleInfo=vehicleInfo,customerID=custinfo.customerID,form=form)
     print("notvalidated")
-    vin = request.args.get('vin')
-    vehicleInfo = db.session.query(Vehicle).filter_by(vin = vin).first()
     return render_template('index.html', vehicleInfo = vehicleInfo, form=form)
-
-@app.route('/success', methods=['GET'])
-def success():
-    return render_template("success.html")
 
 if __name__ == '__main__':
     app.run()
