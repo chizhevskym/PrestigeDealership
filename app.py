@@ -130,27 +130,32 @@ def submit():
     if form.validate_on_submit():
         print("validated")
         appt = None
-        #find if appointment already exists
-        custinfo = db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first()
-        if custinfo is not None:
+        # appointment already exists
+        try:
+            custinfo = db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first()
             appt = db.session.query(Appointment).filter_by(employeeID=form.employee.data.employeeID,customerID=custinfo.customerID,vehicleID=form.vin.data).first()
             session['apptID']=appt.appointmentID
-        if appt is None:
+        # appointment doesn't exist
+        except:
             print("NONE!!!")
+            # edit previous appointment
             if 'apptID' in session:
+                # find the old appointment and customer rows
                 oldappt = db.session.query(Appointment).filter_by(appointmentID=session['apptID']).first()
                 oldcust = db.session.query(Customer).filter_by(customerID=oldappt.customerID).first()
+                # update customer info, keep same ID
                 oldcust.firstname=form.customerfirst.data
                 oldcust.lastname=form.customerlast.data
                 oldcust.zipcode=form.zipcode.data
                 custinfo=oldcust
-                db.session.commit()
+                # update old appointment, keep same ID
                 oldappt.employeeID=form.employee.data.employeeID
                 oldappt.vehicleID=form.vin.data
                 db.session.commit()
+            # new appointment creation
             else:
+                #add new customer to db
                 if form.repeatcust.data == False:
-                    #add new customer to db
                     newcust= Customer(form.customerfirst.data,form.customerlast.data,form.zipcode.data)
                     db.session.add(newcust)
                     db.session.commit()
@@ -161,7 +166,8 @@ def submit():
                 db.session.add(newappt)
                 db.session.commit()
                 session['apptID']=newappt.appointmentID
-        return render_template('success.html', vehicleInfo=vehicleInfo,customerID=custinfo.customerID,form=form)
+        finally: 
+            return render_template('success.html', vehicleInfo=vehicleInfo,form=form)
     print("notvalidated")
     return render_template('index.html', vehicleInfo = vehicleInfo, form=form)
 
