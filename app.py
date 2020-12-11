@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import Form, BooleanField, DateTimeField, StringField, TextField, SelectField, HiddenField, SubmitField
@@ -129,17 +129,35 @@ def submit():
     #form validation
     if form.validate_on_submit():
         print("validated")
-        if form.repeatcust.data == False:
-            #add new customer to db
-            newcust= Customer(form.customerfirst.data,form.customerlast.data,form.zipcode.data)
-            db.session.add(newcust)
-            db.session.commit()
-        #find customer in db
+        appt = None
         custinfo = db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first()
-        #add new appt to db
-        newappt = Appointment(form.employee.data.employeeID,custinfo.customerID,form.vin.data)
-        db.session.add(newappt)
-        db.session.commit()
+        if custinfo is not None:
+            appt = db.session.query(Appointment).filter_by(employeeID=form.employee.data.employeeID,customerID=custinfo.customerID,vehicleID=form.vin.data).first()
+        if appt is None:
+            print("NONE!!!")
+            if 'apptID' in session:
+                oldappt = db.session.query(Appointment).filter_by(appointmentID=session['apptID']).first()
+                oldcust = db.session.query(Customer).filter_by(customerID=oldappt.customerID).first()
+                oldcust.firstname=form.customerfirst.data
+                oldcust.lastname=form.customerlast.data
+                oldcust.zipcode=form.zipcode.data
+                db.session.commit()
+                oldappt.employeeID=form.employee.data.employeeID
+                oldappt.vehicleID=form.vin.data
+                db.session.commit()
+            else:
+                if form.repeatcust.data == False:
+                    #add new customer to db
+                    newcust= Customer(form.customerfirst.data,form.customerlast.data,form.zipcode.data)
+                    db.session.add(newcust)
+                    db.session.commit()
+                #find customer in db
+                custinfo = db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first()
+                #add new appt to db
+                newappt = Appointment(form.employee.data.employeeID,custinfo.customerID,form.vin.data)
+                db.session.add(newappt)
+                db.session.commit()
+                session['apptID']=newappt.appointmentID
         return render_template('success.html', vehicleInfo=vehicleInfo,customerID=custinfo.customerID,form=form)
     print("notvalidated")
     return render_template('index.html', vehicleInfo = vehicleInfo, form=form)
