@@ -130,9 +130,11 @@ def submit():
     if form.validate_on_submit():
         print("validated")
         appt = None
+        #find if appointment already exists
         custinfo = db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first()
         if custinfo is not None:
             appt = db.session.query(Appointment).filter_by(employeeID=form.employee.data.employeeID,customerID=custinfo.customerID,vehicleID=form.vin.data).first()
+            session['apptID']=appt.appointmentID
         if appt is None:
             print("NONE!!!")
             if 'apptID' in session:
@@ -141,6 +143,7 @@ def submit():
                 oldcust.firstname=form.customerfirst.data
                 oldcust.lastname=form.customerlast.data
                 oldcust.zipcode=form.zipcode.data
+                custinfo=oldcust
                 db.session.commit()
                 oldappt.employeeID=form.employee.data.employeeID
                 oldappt.vehicleID=form.vin.data
