@@ -45,7 +45,7 @@
             <br>
             <div class="form-group">
               <h3>When would you like to visit?</h3>
-              {{form.time()}}
+              {{form.time(placeholder="YYYY-MM-DD Hour:Min:Sec")}}
               {% for error in form.time.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
