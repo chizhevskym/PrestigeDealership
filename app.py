@@ -21,9 +21,23 @@ length=timedelta(hours = 2)
 start=datetime(2020,12,16,12,15)
 end=start + length
  # finds any conflicting events
+confirmation=None
 Events = calendar.get_events(time_min=start,time_max=end, order_by='updated')
 for event in Events:
-    print(event.event_id)
+    emp=False
+    veh=False
+    cust=False
+    for attendee in event.attendees:
+        if attendee.display_name == "Employee" and attendee.comment=="1":
+            emp=True
+        elif attendee.display_name == "Vehicle" and attendee.comment=="4":
+            veh=True
+        elif attendee.display_name == "Customer" and attendee.comment=="1":
+            cust=True
+       # print(event.event_id)
+        if emp==True and veh==True and cust==True:
+            confirmation=event.event_id
+print(confirmation)
 event_id='s3g1v5cct5fd64eq8v3hapkhgg'
 oldappt = calendar.get_event(event_id)
 custID=None
@@ -122,13 +136,6 @@ class Customer(db.Model):
         self.lastname = lastname
         self.zipcode = zipcode
 
- # constructor to initialize class
- #takes in self/this and all varables 
-    def __init__(self,employeeID,customerID,vehicleID):
-        self.employeeID = employeeID
-        self.customerID = customerID
-        self.vehicleID = vehicleID
-
 # renders input form and validation
 class AppointmentForm(FlaskForm): 
     customerfirst = StringField('customerfirstname', [DataRequired(), Length(max=200)])
@@ -152,12 +159,13 @@ class AppointmentForm(FlaskForm):
         start=field.data
         end=start + length
         # finds any conflicting events
-        Events = calendar.get_events(time_min=start,time_max=end, order_by='updated', query="Employee="+form.employee.data.employeeID)
+        Events = calendar.get_events(time_min=start,time_max=end, order_by='updated')
         for event in Events:
-            raise ValidationError("Appointment Conflict! Employee is busy at that time, choose a different date or employee!")
-        Events = calendar.get_events(time_min=start,time_max=end, order_by='updated', query="Vehicle="+form.vin.data)
-        for event in Events:
-            raise ValidationError("Appointment Conflict! Vehicle is needed at that time, choose a different date or vehicle!")
+            for attendee in event.attendees:
+                if attendee.display_name == "Employee" and attendee.comment==form.employee.data.employeeID:
+                    raise ValidationError("Appointment Conflict! Employee is busy at that time, choose a different date or employee!")
+                elif attendee.display_name == "Vehicle" and attendee.comment==form.vin.data:
+                    raise ValidationError("Appointment Conflict! Vehicle is needed at that time, choose a different date or vehicle!")
 
 
 # Route for form / homepage
@@ -169,7 +177,6 @@ def index():
 @app.route('/index', methods=['GET', 'POST'])
 def submit():
     #grab info from form
-    #session.clear()
     form = AppointmentForm()
     vin = request.args.get('vin')
     vehicleInfo = db.session.query(Vehicle).filter_by(vin = vin).first()
@@ -179,16 +186,11 @@ def submit():
         length=timedelta(hours = 2)
         start=form.time.data
         end=start + length 
-        try:
-            print(request.args.get('event'))
-        except:
-            print("no eventid found")
         # edit previous appointment
         try:
-            #request.args.get('event_id') is not None:
-            event_id=request.args.get('event')
+            confirmation=request.args.get('confirmation')
             # find the old appointment and customer rows
-            oldappt = calendar.get_event(event_id)
+            oldappt = calendar.get_event(confirmation)
             custID=None
             for attendee in oldappt.attendees:
                 if attendee.display_name == "Customer":
@@ -203,7 +205,7 @@ def submit():
             oldappt.start = start
             oldappt.end = end
             calendar.update_event(oldappt)
-            oldappt = calendar.get_event(event_id)
+            oldappt = calendar.get_event(confirmation)
             for attendee in oldappt.attendees:
                 if attendee.display_name == "Employee":
                     attendee.comment=form.employee.data.employeeID
@@ -229,9 +231,23 @@ def submit():
             vehattendee=Attendee(email="vehicle@fake.com",comment=form.vin.data, display_name="Vehicle")
             event = Event('Test-Drive', start=start, end=end, attendees=[empattendee,custattendee,vehattendee])
             calendar.add_event(event)
-            confcode=event.event_id
-            print(event.event_id) 
-        return render_template('success.html', vehicleInfo=vehicleInfo,form=form)
+            confirmation=None
+            Events = calendar.get_events(time_min=start,time_max=end, order_by='updated')
+            for event in Events:
+                emp=False
+                veh=False
+                cust=False
+                for attendee in event.attendees:
+                    if attendee.display_name == "Employee" and attendee.comment==str(form.employee.data.employeeID):
+                        emp=True
+                    elif attendee.display_name == "Vehicle" and attendee.comment==str(form.vin.data):
+                        veh=True
+                    elif attendee.display_name == "Customer" and attendee.comment==str(custinfo.customerID):
+                        cust=True
+                    if emp==True and veh==True and cust==True:
+                        confirmation=event.event_id
+            print(confirmation)
+        return render_template('success.html', vehicleInfo=vehicleInfo,form=form, confirmation=confirmation)
     print("notvalidated")
     return render_template('index.html', vehicleInfo = vehicleInfo, form=form)
 

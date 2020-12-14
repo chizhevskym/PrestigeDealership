@@ -16,7 +16,7 @@
       <h3>Zipcode: {{form.zipcode.data}} </h3>
       <h3>Vehicle: {{vehicleInfo.year}} {{vehicleInfo.make}} {{vehicleInfo.model}}</h3> 
       <h3>Employee: {{form.employee.data.firstname}} {{form.employee.data.lastname}}</h3>
-      <a href={{"/index?vin=" + vehicleInfo.vin}}><p>Change appointment details</p></a>
+      <a href={{"/index?vin=" + vehicleInfo.vin + "&confirmation=" + confirmation}}><p>Change appointment details</p></a>
     </div>
   </body>
 </html>
