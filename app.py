@@ -1,7 +1,11 @@
+from datetime import datetime,timedelta
 from flask import Flask, render_template, request, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from wtforms import Form, BooleanField, DateTimeField, StringField, TextField, SelectField, HiddenField, SubmitField
+from gcsa.google_calendar import GoogleCalendar
+from gcsa.attendee import Attendee
+from gcsa.event import Event
+from wtforms import Form, BooleanField, DateTimeField, StringField, TextField, SelectField, HiddenField, SubmitField, DateTimeField
 from wtforms.validators import Length, DataRequired, ValidationError
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
@@ -9,6 +13,9 @@ app = Flask(__name__)
 
 #for CSRF protection
 app.config['SECRET_KEY'] = 'you-will-never-guess'
+
+#connect to google calendar-uses ~\.config path for authentication
+calendar = GoogleCalendar()
 
 ENV = 'dev'
 #ENV = 'prod'
@@ -104,6 +111,7 @@ class AppointmentForm(FlaskForm):
     customerlast = StringField('customerlastname',[DataRequired(), Length(max=200)])
     zipcode = StringField('customerzipcode',[DataRequired(), Length(min = 5, max=5, message= 'Invalid Zip-Code')])
     employee = QuerySelectField('employee',[DataRequired()], query_factory=lambda: db.session.query(Employee).all(), get_label=lambda e: e.firstname + ' ' + e.lastname,allow_blank=True,blank_text='Select Employee')
+    time= DateTimeField('time',[DataRequired("Year-Month-Day Hour:Min:Sec Format")])
     repeatcust = BooleanField('repeatcust')
     vin = HiddenField('vin', [DataRequired(), Length(max=17)])
     submit = SubmitField('Schedule Test Drive')
@@ -112,6 +120,17 @@ class AppointmentForm(FlaskForm):
     def validate_repeatcust(form,field):
         if field.data == True and db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first() is None:
             raise ValidationError('You have not been here before (no matching customer in database)')
+
+    # to validate that time is available in Google Calendar 
+    def validate_time(form,field):
+        # appointment length
+        length=timedelta(hours = 2)
+        start=field.data
+        end=start + length
+        # finds any conflicting events
+        Events = calendar.get_events(time_min=start,time_max=end, order_by='updated')
+        for event in Events:
+            raise ValidationError("Appointment Conflict! Choose a different date!")
 
 
 # Route for form / homepage
@@ -123,6 +142,7 @@ def index():
 @app.route('/index', methods=['GET', 'POST'])
 def submit():
     #grab info from form
+    #session.clear()
     form = AppointmentForm()
     vin = request.args.get('vin')
     vehicleInfo = db.session.query(Vehicle).filter_by(vin = vin).first()
@@ -141,6 +161,7 @@ def submit():
             print("No appointment found")
             # edit previous appointment
             if 'apptID' in session:
+                print("apptid in session")
                 # find the old appointment and customer rows
                 oldappt = db.session.query(Appointment).filter_by(appointmentID=session['apptID']).first()
                 oldcust = db.session.query(Customer).filter_by(customerID=oldappt.customerID).first()
@@ -156,6 +177,7 @@ def submit():
                 print("Updated appointment")
             # new appointment creation
             else:
+                print("new appt creation")
                 #add new customer to db
                 if form.repeatcust.data == False:
                     newcust= Customer(form.customerfirst.data,form.customerlast.data,form.zipcode.data)
@@ -167,6 +189,15 @@ def submit():
                 newappt = Appointment(form.employee.data.employeeID,custinfo.customerID,form.vin.data)
                 db.session.add(newappt)
                 db.session.commit()
+                #add new event to google calendar
+                length=timedelta(hours = 2)
+                start=form.time.data
+                end=start + length 
+                empattendee=Attendee(email="employee@fake.com",display_name=form.employee.data.employeeID, comment="Employee")
+                custattendee=Attendee(email="customer@fake.com",display_name=custinfo.customerID, comment="Customer")
+                vehattendee=Attendee(email="vehicle@fake.com",display_name=form.vin.data, comment="Vehicle")
+                event = Event('Test-Drive', start=start, end=end, attendees=[empattendee,custattendee,vehattendee])
+                calendar.add_event(event)
                 session['apptID']=newappt.appointmentID
                 print("Created appointment")
         finally: 

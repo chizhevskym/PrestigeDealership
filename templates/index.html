@@ -44,6 +44,14 @@
             </div>
             <br>
             <div class="form-group">
+              <h3>When would you like to visit?</h3>
+              {{form.time()}}
+              {% for error in form.time.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+            </div>
+            <br>
+            <div class="form-group">
               <h3>Previous Customer?</h3>
               {{form.repeatcust(value="Yes")}}
               Yes
