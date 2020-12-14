@@ -128,9 +128,12 @@ class AppointmentForm(FlaskForm):
         start=field.data
         end=start + length
         # finds any conflicting events
-        Events = calendar.get_events(time_min=start,time_max=end, order_by='updated')
+        Events = calendar.get_events(time_min=start,time_max=end, order_by='updated', query="Employee="+form.employee.data.employeeID)
         for event in Events:
-            raise ValidationError("Appointment Conflict! Choose a different date!")
+            raise ValidationError("Appointment Conflict! Employee is busy at that time, choose a different date or employee!")
+        Events = calendar.get_events(time_min=start,time_max=end, order_by='updated', query="Vehicle="+form.vin.data)
+        for event in Events:
+            raise ValidationError("Appointment Conflict! Vehicle is needed at that time, choose a different date or vehicle!")
 
 
 # Route for form / homepage
@@ -161,7 +164,6 @@ def submit():
             print("No appointment found")
             # edit previous appointment
             if 'apptID' in session:
-                print("apptid in session")
                 # find the old appointment and customer rows
                 oldappt = db.session.query(Appointment).filter_by(appointmentID=session['apptID']).first()
                 oldcust = db.session.query(Customer).filter_by(customerID=oldappt.customerID).first()
