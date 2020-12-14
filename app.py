@@ -16,6 +16,39 @@ app.config['SECRET_KEY'] = 'you-will-never-guess'
 
 #connect to google calendar-uses ~\.config path for authentication
 calendar = GoogleCalendar()
+'''
+length=timedelta(hours = 2)
+start=datetime(2020,12,16,12,15)
+end=start + length
+ # finds any conflicting events
+Events = calendar.get_events(time_min=start,time_max=end, order_by='updated')
+for event in Events:
+    print(event.event_id)
+event_id='s3g1v5cct5fd64eq8v3hapkhgg'
+oldappt = calendar.get_event(event_id)
+custID=None
+for attendee in oldappt.attendees:
+    if attendee.display_name == "Customer":
+        custID=attendee.comment
+try:
+    print(custID)
+except:
+    print("nonefound")
+start=datetime(2020,12,18,12,15)
+end=start + length
+oldappt.start = start
+oldappt.end = end
+calendar.update_event(oldappt)
+oldappt = calendar.get_event(event_id)
+for attendee in oldappt.attendees:
+    if attendee.display_name == "Employee":
+        attendee.comment='1'
+    elif attendee.display_name == "Vehicle":
+        attendee.comment='2'
+    elif attendee.display_name == "Customer":
+        attendee.comment='4'
+calendar.update_event(oldappt)
+'''
 
 ENV = 'dev'
 #ENV = 'prod'
@@ -89,15 +122,6 @@ class Customer(db.Model):
         self.lastname = lastname
         self.zipcode = zipcode
 
-#create model for appointments\
-#intializes database
-class Appointment(db.Model):
-    __tablename__ = 'Appointment'
-    appointmentID = db.Column(db.Integer, primary_key=True)
-    employeeID = db.Column(db.Integer)
-    customerID = db.Column(db.Integer)
-    vehicleID = db.Column(db.String(17))
-
  # constructor to initialize class
  #takes in self/this and all varables 
     def __init__(self,employeeID,customerID,vehicleID):
@@ -152,58 +176,62 @@ def submit():
     #form validation
     if form.validate_on_submit():
         print("validated")
-        appt = None
-        # appointment already exists
+        length=timedelta(hours = 2)
+        start=form.time.data
+        end=start + length 
         try:
-            custinfo = db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first()
-            appt = db.session.query(Appointment).filter_by(employeeID=form.employee.data.employeeID,customerID=custinfo.customerID,vehicleID=form.vin.data).first()
-            session['apptID']=appt.appointmentID
-            print("Appointment Found")
-        # appointment doesn't exist
+            print(request.args.get('event'))
         except:
-            print("No appointment found")
-            # edit previous appointment
-            if 'apptID' in session:
-                # find the old appointment and customer rows
-                oldappt = db.session.query(Appointment).filter_by(appointmentID=session['apptID']).first()
-                oldcust = db.session.query(Customer).filter_by(customerID=oldappt.customerID).first()
-                # update customer info, keep same ID
-                oldcust.firstname=form.customerfirst.data
-                oldcust.lastname=form.customerlast.data
-                oldcust.zipcode=form.zipcode.data
-                custinfo=oldcust
-                # update old appointment, keep same ID
-                oldappt.employeeID=form.employee.data.employeeID
-                oldappt.vehicleID=form.vin.data
+            print("no eventid found")
+        # edit previous appointment
+        try:
+            #request.args.get('event_id') is not None:
+            event_id=request.args.get('event')
+            # find the old appointment and customer rows
+            oldappt = calendar.get_event(event_id)
+            custID=None
+            for attendee in oldappt.attendees:
+                if attendee.display_name == "Customer":
+                    custID=attendee.comment
+            oldcust = db.session.query(Customer).filter_by(customerID=custID).first()
+            # update customer info, keep same ID
+            oldcust.firstname=form.customerfirst.data
+            oldcust.lastname=form.customerlast.data
+            oldcust.zipcode=form.zipcode.data
+            custinfo=oldcust
+            # update old appointment, keep same ID
+            oldappt.start = start
+            oldappt.end = end
+            calendar.update_event(oldappt)
+            oldappt = calendar.get_event(event_id)
+            for attendee in oldappt.attendees:
+                if attendee.display_name == "Employee":
+                    attendee.comment=form.employee.data.employeeID
+                elif attendee.display_name == "Vehicle":
+                    attendee.comment=form.vin.data
+                elif attendee.display_name == "Customer":
+                    attendee.comment=oldcust.customerID
+            calendar.update_event(oldappt)
+            print("Updated appointment")
+        # new appointment creation
+        except:
+            print("new appt creation")
+            #add new customer to db
+            if form.repeatcust.data == False:
+                newcust= Customer(form.customerfirst.data,form.customerlast.data,form.zipcode.data)
+                db.session.add(newcust)
                 db.session.commit()
-                print("Updated appointment")
-            # new appointment creation
-            else:
-                print("new appt creation")
-                #add new customer to db
-                if form.repeatcust.data == False:
-                    newcust= Customer(form.customerfirst.data,form.customerlast.data,form.zipcode.data)
-                    db.session.add(newcust)
-                    db.session.commit()
-                #find customer in db
-                custinfo = db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first()
-                #add new appt to db
-                newappt = Appointment(form.employee.data.employeeID,custinfo.customerID,form.vin.data)
-                db.session.add(newappt)
-                db.session.commit()
-                #add new event to google calendar
-                length=timedelta(hours = 2)
-                start=form.time.data
-                end=start + length 
-                empattendee=Attendee(email="employee@fake.com",display_name=form.employee.data.employeeID, comment="Employee")
-                custattendee=Attendee(email="customer@fake.com",display_name=custinfo.customerID, comment="Customer")
-                vehattendee=Attendee(email="vehicle@fake.com",display_name=form.vin.data, comment="Vehicle")
-                event = Event('Test-Drive', start=start, end=end, attendees=[empattendee,custattendee,vehattendee])
-                calendar.add_event(event)
-                session['apptID']=newappt.appointmentID
-                print("Created appointment")
-        finally: 
-            return render_template('success.html', vehicleInfo=vehicleInfo,form=form)
+            #find customer in db
+            custinfo = db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first()
+            #add new event to google calendar
+            empattendee=Attendee(email="employee@fake.com",comment=form.employee.data.employeeID, display_name="Employee")
+            custattendee=Attendee(email="customer@fake.com",comment=custinfo.customerID, display_name="Customer")
+            vehattendee=Attendee(email="vehicle@fake.com",comment=form.vin.data, display_name="Vehicle")
+            event = Event('Test-Drive', start=start, end=end, attendees=[empattendee,custattendee,vehattendee])
+            calendar.add_event(event)
+            confcode=event.event_id
+            print(event.event_id) 
+        return render_template('success.html', vehicleInfo=vehicleInfo,form=form)
     print("notvalidated")
     return render_template('index.html', vehicleInfo = vehicleInfo, form=form)
 
