@@ -16,53 +16,6 @@ app.config['SECRET_KEY'] = 'you-will-never-guess'
 
 #connect to google calendar-uses ~\.config path for authentication
 calendar = GoogleCalendar()
-'''
-length=timedelta(hours = 2)
-start=datetime(2020,12,16,12,15)
-end=start + length
- # finds any conflicting events
-confirmation=None
-Events = calendar.get_events(time_min=start,time_max=end, order_by='updated')
-for event in Events:
-    emp=False
-    veh=False
-    cust=False
-    for attendee in event.attendees:
-        if attendee.display_name == "Employee" and attendee.comment=="1":
-            emp=True
-        elif attendee.display_name == "Vehicle" and attendee.comment=="4":
-            veh=True
-        elif attendee.display_name == "Customer" and attendee.comment=="1":
-            cust=True
-       # print(event.event_id)
-        if emp==True and veh==True and cust==True:
-            confirmation=event.event_id
-print(confirmation)
-event_id='s3g1v5cct5fd64eq8v3hapkhgg'
-oldappt = calendar.get_event(event_id)
-custID=None
-for attendee in oldappt.attendees:
-    if attendee.display_name == "Customer":
-        custID=attendee.comment
-try:
-    print(custID)
-except:
-    print("nonefound")
-start=datetime(2020,12,18,12,15)
-end=start + length
-oldappt.start = start
-oldappt.end = end
-calendar.update_event(oldappt)
-oldappt = calendar.get_event(event_id)
-for attendee in oldappt.attendees:
-    if attendee.display_name == "Employee":
-        attendee.comment='1'
-    elif attendee.display_name == "Vehicle":
-        attendee.comment='2'
-    elif attendee.display_name == "Customer":
-        attendee.comment='4'
-calendar.update_event(oldappt)
-'''
 
 ENV = 'dev'
 #ENV = 'prod'
@@ -200,6 +153,8 @@ def submit():
             oldcust.firstname=form.customerfirst.data
             oldcust.lastname=form.customerlast.data
             oldcust.zipcode=form.zipcode.data
+            db.session.add(oldcust)
+            db.session.commit()
             custinfo=oldcust
             # update old appointment, keep same ID
             oldappt.start = start
@@ -232,6 +187,7 @@ def submit():
             event = Event('Test-Drive', start=start, end=end, attendees=[empattendee,custattendee,vehattendee])
             calendar.add_event(event)
             confirmation=None
+            #find created event and grab event_id
             Events = calendar.get_events(time_min=start,time_max=end, order_by='updated')
             for event in Events:
                 emp=False
