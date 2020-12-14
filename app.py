@@ -135,9 +135,10 @@ def submit():
             custinfo = db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first()
             appt = db.session.query(Appointment).filter_by(employeeID=form.employee.data.employeeID,customerID=custinfo.customerID,vehicleID=form.vin.data).first()
             session['apptID']=appt.appointmentID
+            print("Appointment Found")
         # appointment doesn't exist
         except:
-            print("NONE!!!")
+            print("No appointment found")
             # edit previous appointment
             if 'apptID' in session:
                 # find the old appointment and customer rows
@@ -152,6 +153,7 @@ def submit():
                 oldappt.employeeID=form.employee.data.employeeID
                 oldappt.vehicleID=form.vin.data
                 db.session.commit()
+                print("Updated appointment")
             # new appointment creation
             else:
                 #add new customer to db
@@ -166,6 +168,7 @@ def submit():
                 db.session.add(newappt)
                 db.session.commit()
                 session['apptID']=newappt.appointmentID
+                print("Created appointment")
         finally: 
             return render_template('success.html', vehicleInfo=vehicleInfo,form=form)
     print("notvalidated")
