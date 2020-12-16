@@ -6,6 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+    $(document).ready(() => {
+      const urlParams = new URLSearchParams(window.location.search);
+    var conf = "";
+    if (urlParams.has('confirmation'))
+    {
+      var conf=urlParams.get('confirmation');
+    }
+    console.log(conf);
+    document.getElementById('confirmation').setAttribute('value', conf);
+    });
+    </script>
     <link rel="stylesheet" href="../static/style.css" />
     <title>Schedule a Test Drive</title>
   </head>
@@ -68,6 +80,7 @@
             </div>
             <p>{{form.submit(class="btn")}}</p>
             {{form.vin(value=vehicleInfo.vin)}}
+            {{form.confirmation()}}
           </form>
         </div>
   </body>

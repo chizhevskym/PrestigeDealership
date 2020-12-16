@@ -11,10 +11,10 @@ from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
 app = Flask(__name__)
 
-#for CSRF protection
+# for CSRF protection
 app.config['SECRET_KEY'] = 'you-will-never-guess'
 
-#connect to google calendar-uses ~\.config path for authentication
+# connect to google calendar-uses ~\.config path for authentication
 calendar = GoogleCalendar()
 
 ENV = 'dev'
@@ -29,11 +29,11 @@ else:
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-#create db object and pass app to query db
+# create db object and pass app to query db
 db = SQLAlchemy(app)
 
-#create model for vehicle
-#intializes database
+# create model for vehicle
+# intializes database
 class Vehicle(db.Model):
     __tablename__ = 'Vehicle'
     vin = db.Column(db.String(17), primary_key=True)
@@ -47,7 +47,6 @@ class Vehicle(db.Model):
     imageURL = db.Column(db.String(400))
 
  # constructor to initialize class
- #takes in self/this and all varables 
     def __init__(self, vin, model, make, year, mileage, exterior, interior, price, imageURL):
         self.vin = vin
         self.model = model
@@ -59,8 +58,8 @@ class Vehicle(db.Model):
         self.price = price
         self.imageURL = imageURL
 
-#create model for employee
-#intializes database
+# create model for employee
+# intializes database
 class Employee(db.Model):
     __tablename__ = 'Employee'
     employeeID = db.Column(db.Integer, primary_key=True)
@@ -68,13 +67,12 @@ class Employee(db.Model):
     lastname = db.Column(db.String(200))
 
  # constructor to initialize class
- #takes in self/this and all varables 
     def __init__(self,firstname,lastname):
         self.firstname = firstname
         self.lastname = lastname
 
-#create model for customer
-#intializes database
+# create model for customer
+# intializes database
 class Customer(db.Model):
     __tablename__ = 'Customer'
     customerID = db.Column(db.Integer, primary_key=True)
@@ -82,8 +80,7 @@ class Customer(db.Model):
     lastname = db.Column(db.String(200))
     zipcode = db.Column(db.String(5))
 
- # constructor to initialize class
- #takes in self/this and all varables 
+ # constructor to initialize class 
     def __init__(self,firstname,lastname,zipcode):
         self.firstname = firstname
         self.lastname = lastname
@@ -98,6 +95,7 @@ class AppointmentForm(FlaskForm):
     time= DateTimeField('time',[DataRequired("Year-Month-Day Hour:Min:Sec Format")])
     repeatcust = BooleanField('repeatcust')
     vin = HiddenField('vin', [DataRequired(), Length(max=17)])
+    confirmation=HiddenField('confirmation')
     submit = SubmitField('Schedule Test Drive')
 
     # to validate that customer is in db
@@ -107,18 +105,27 @@ class AppointmentForm(FlaskForm):
 
     # to validate that time is available in Google Calendar 
     def validate_time(form,field):
+        # employee info is needed validate date
+        if form.employee.data is None:
+            raise ValidationError("Need Employee Info for Scheduling!")
         # appointment length
         length=timedelta(hours = 2)
         start=field.data
         end=start + length
+        present=datetime.now()
+        # appointments must be for future dates
+        if present>start:
+            raise ValidationError("Date and time have already passed!")
         # finds any conflicting events
         Events = calendar.get_events(time_min=start,time_max=end, order_by='updated')
         for event in Events:
-            for attendee in event.attendees:
-                if attendee.display_name == "Employee" and attendee.comment==form.employee.data.employeeID:
-                    raise ValidationError("Appointment Conflict! Employee is busy at that time, choose a different date or employee!")
-                elif attendee.display_name == "Vehicle" and attendee.comment==form.vin.data:
-                    raise ValidationError("Appointment Conflict! Vehicle is needed at that time, choose a different date or vehicle!")
+            # exclude appointment being changed from being a conflict
+            if event.event_id != form.confirmation.data:
+                for attendee in event.attendees:
+                    if attendee.display_name == "Employee" and attendee.comment==form.employee.data.employeeID:
+                        raise ValidationError("Appointment Conflict! Employee is busy at that time, choose a different date or employee!")
+                    elif attendee.display_name == "Vehicle" and attendee.comment==form.vin.data:
+                        raise ValidationError("Appointment Conflict! Vehicle is needed at that time, choose a different date or vehicle!")
 
 
 # Route for form / homepage
@@ -133,7 +140,7 @@ def submit():
     form = AppointmentForm()
     vin = request.args.get('vin')
     vehicleInfo = db.session.query(Vehicle).filter_by(vin = vin).first()
-    #form validation
+    # form validation
     if form.validate_on_submit():
         print("validated")
         length=timedelta(hours = 2)
@@ -173,21 +180,21 @@ def submit():
         # new appointment creation
         except:
             print("new appt creation")
-            #add new customer to db
+            # add new customer to db
             if form.repeatcust.data == False:
                 newcust= Customer(form.customerfirst.data,form.customerlast.data,form.zipcode.data)
                 db.session.add(newcust)
                 db.session.commit()
-            #find customer in db
+            # find customer in db
             custinfo = db.session.query(Customer).filter_by(firstname = form.customerfirst.data, lastname=form.customerlast.data, zipcode=form.zipcode.data).first()
-            #add new event to google calendar
+            # add new event to google calendar
             empattendee=Attendee(email="employee@fake.com",comment=form.employee.data.employeeID, display_name="Employee")
             custattendee=Attendee(email="customer@fake.com",comment=custinfo.customerID, display_name="Customer")
             vehattendee=Attendee(email="vehicle@fake.com",comment=form.vin.data, display_name="Vehicle")
             event = Event('Test-Drive', start=start, end=end, attendees=[empattendee,custattendee,vehattendee])
             calendar.add_event(event)
             confirmation=None
-            #find created event and grab event_id
+            # find created event and grab event_id
             Events = calendar.get_events(time_min=start,time_max=end, order_by='updated')
             for event in Events:
                 emp=False
